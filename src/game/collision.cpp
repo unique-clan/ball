@@ -11,6 +11,7 @@
 #include <game/mapitems.h>
 #include <game/layers.h>
 #include <game/collision.h>
+#include <stdio.h>
 
 CCollision::CCollision()
 {
@@ -40,10 +41,34 @@ void CCollision::Init(class CLayers *pLayers)
 			m_pTiles[i].m_Index = COLFLAG_DEATH;
 			break;
 		case TILE_SOLID:
-			m_pTiles[i].m_Index = COLFLAG_SOLID;
+			m_pTiles[i].m_Index = COLFLAG_SOLID|COLFLAG_BALL_SOLID;
 			break;
 		case TILE_NOHOOK:
-			m_pTiles[i].m_Index = COLFLAG_SOLID|COLFLAG_NOHOOK;
+			m_pTiles[i].m_Index = COLFLAG_SOLID|COLFLAG_NOHOOK|COLFLAG_BALL_SOLID;
+			break;
+		case TILE_GOAL_TEAM_0:
+			m_pTiles[i].m_Index = SFLAG_GOAL_TEAM_0;
+			break;
+		case TILE_GOAL_TEAM_1:
+			m_pTiles[i].m_Index = SFLAG_GOAL_TEAM_1;
+			break;
+		case TILE_LIMIT_TEAM_0:
+			m_pTiles[i].m_Index = SFLAG_LIMIT_TEAM_0;
+			break;
+		case TILE_LIMIT_TEAM_1:
+			m_pTiles[i].m_Index = SFLAG_LIMIT_TEAM_1;
+			break;
+		case TILE_GOALIE_LIMIT_0:
+			m_pTiles[i].m_Index = SFLAG_GOALIE_LIMIT_0;
+			break;
+		case TILE_GOALIE_LIMIT_1:
+			m_pTiles[i].m_Index = SFLAG_GOALIE_LIMIT_1;
+			break;
+		case TILE_BALL_SOLID:
+			m_pTiles[i].m_Index = COLFLAG_BALL_SOLID;
+			break;
+		case TILE_DEATH_BALL_SOLID:
+			m_pTiles[i].m_Index = COLFLAG_BALL_SOLID | COLFLAG_DEATH;
 			break;
 		default:
 			m_pTiles[i].m_Index = 0;
@@ -64,32 +89,89 @@ bool CCollision::IsTileSolid(int x, int y)
 	return GetTile(x, y)&COLFLAG_SOLID;
 }
 
-// TODO: rewrite this smarter!
-int CCollision::IntersectLine(vec2 Pos0, vec2 Pos1, vec2 *pOutCollision, vec2 *pOutBeforeCollision)
+bool CCollision::IsTileBallEvent(int x, int y)
 {
-	float Distance = distance(Pos0, Pos1);
-	int End(Distance+1);
-	vec2 Last = Pos0;
+	switch (GetTile(x, y)) {
+	case SFLAG_GOAL_TEAM_0:
+	case SFLAG_GOAL_TEAM_1:
+		return true;
+	default:
+		return GetTile(x, y)&COLFLAG_BALL_SOLID;
+	}
+}
 
-	for(int i = 0; i < End; i++)
-	{
-		float a = i/Distance;
-		vec2 Pos = mix(Pos0, Pos1, a);
-		if(CheckPoint(Pos.x, Pos.y))
+int CCollision::IntersectLine(vec2 Pos0, vec2 Pos1, vec2 *pOutCollision, vec2 *pOutBeforeCollision, bool ball)
+{
+	vec2 Cur = Pos0;
+	vec2 Dist = Pos1 - Pos0;
+	vec2 Last = Pos0;
+	int Dir_x;
+	int Dir_y;
+
+	if (Dist.x > 0) {
+		Dir_x = 1;
+	} else {
+		Dir_x = -1;
+	}
+	if (Dist.y > 0) {
+		Dir_y = 1;
+	} else {
+		Dir_y = -1;
+	}
+
+	// Move along the line Pos0 -> Pos1 by jumping between tile intersection points
+	while ((Pos1.x - Cur.x) * Dir_x >= 0 && (Pos1.y - Cur.y) * Dir_y >= 0) {
+		if((ball && BallCheckPoint(Cur.x, Cur.y)) || (!ball && CheckPoint(Cur.x, Cur.y)))
 		{
 			if(pOutCollision)
-				*pOutCollision = Pos;
+				*pOutCollision = Cur;
 			if(pOutBeforeCollision)
 				*pOutBeforeCollision = Last;
-			return GetCollisionAt(Pos.x, Pos.y);
+			return GetCollisionAt(Cur.x, Cur.y);
 		}
-		Last = Pos;
+
+
+		Last = Cur;
+		vec2 next;
+		if (Dir_x > 0) {
+			next.x = ((int)Cur.x/32 + 1) * 32;
+		} else {
+			next.x = ((int)Cur.x/32) * 32 - 0.5001;
+		}
+		if (Dir_y > 0) {
+			next.y = ((int)Cur.y/32 + 1) * 32;
+		} else {
+			next.y = ((int)Cur.y/32) * 32 - 0.5001;
+		}
+		vec2 rem_dist;
+		rem_dist.x = (next.x - Cur.x) / Dist.x;
+		rem_dist.y = (next.y - Cur.y) / Dist.y;
+
+		if (rem_dist.x < rem_dist.y) {
+			Cur.x += rem_dist.x * Dist.x;
+			Cur.y += rem_dist.x * Dist.y;
+		} else {
+			Cur.x += rem_dist.y * Dist.x;
+			Cur.y += rem_dist.y * Dist.y;
+		}
 	}
+	if((ball && BallCheckPoint(Pos1.x, Pos1.y)) || (!ball && CheckPoint(Pos1.x, Pos1.y)))
+	{
+		if(pOutCollision)
+			*pOutCollision = Pos1;
+		if(pOutBeforeCollision)
+			*pOutBeforeCollision = Last;
+		return GetCollisionAt(Pos1.x, Pos1.y);
+	}
+
 	if(pOutCollision)
 		*pOutCollision = Pos1;
 	if(pOutBeforeCollision)
 		*pOutBeforeCollision = Pos1;
 	return 0;
+
+
+
 }
 
 // TODO: OPT: rewrite this smarter!

@@ -12,6 +12,7 @@
 */
 class IGameController
 {
+	friend class CBall;
 	vec2 m_aaSpawnPoints[3][64];
 	int m_aNumSpawnPoints[3];
 
@@ -141,6 +142,10 @@ public:
 	int ClampTeam(int Team);
 
 	virtual void PostReset();
+	enum {
+		BALL_GAME_RESPAWN,
+		BALL_GAME_RUNNING
+	} ball_game_state;
 };
 
 #endif

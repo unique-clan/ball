@@ -127,6 +127,7 @@ bool IGameController::CanSpawn(int Team, vec2 *pOutPos)
 
 bool IGameController::OnEntity(int Index, vec2 Pos)
 {
+	ball_game_state = BALL_GAME_RESPAWN;
 	int Type = -1;
 	int SubType = 0;
 
