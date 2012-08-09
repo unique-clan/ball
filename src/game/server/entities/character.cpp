@@ -9,7 +9,6 @@
 #include "laser.h"
 #include "projectile.h"
 #include "ball.h"
-#include <stdio.h>
 
 //input count
 struct CInputCount
@@ -342,6 +341,8 @@ void CCharacter::FireWeapon(bool force)
 
 		case WEAPON_GUN:
 		{
+			Direction.x += m_Core.m_Vel.x / GameServer()->Tuning()->m_GunSpeed * Server()->TickSpeed();
+			Direction.y += m_Core.m_Vel.y / GameServer()->Tuning()->m_GunSpeed * Server()->TickSpeed();
 			CProjectile *pProj = new CProjectile(GameWorld(), WEAPON_GUN,
 				m_pPlayer->GetCID(),
 				ProjStartPos,
@@ -365,6 +366,8 @@ void CCharacter::FireWeapon(bool force)
 
 		case WEAPON_SHOTGUN:
 		{
+			Direction.x += m_Core.m_Vel.x / GameServer()->Tuning()->m_ShotgunSpeed * Server()->TickSpeed();
+			Direction.y += m_Core.m_Vel.y / GameServer()->Tuning()->m_ShotgunSpeed * Server()->TickSpeed();
 			CBall *pProj = new CBall(GameWorld(),
 				m_pPlayer->GetCID(),
 				m_Pos,
@@ -385,6 +388,8 @@ void CCharacter::FireWeapon(bool force)
 
 		case WEAPON_GRENADE:
 		{
+			Direction.x += m_Core.m_Vel.x / GameServer()->Tuning()->m_GrenadeSpeed * Server()->TickSpeed();
+			Direction.y += m_Core.m_Vel.y / GameServer()->Tuning()->m_GrenadeSpeed * Server()->TickSpeed();
 			CProjectile *pProj = new CProjectile(GameWorld(), WEAPON_GRENADE,
 				m_pPlayer->GetCID(),
 				ProjStartPos,
