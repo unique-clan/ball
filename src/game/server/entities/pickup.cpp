@@ -106,6 +106,7 @@ void CPickup::Tick()
 					if (m_Subtype == WEAPON_SHOTGUN) {
 						ret = pChr->GiveWeapon(WEAPON_SHOTGUN, 1);
 						pChr->SetWeapon(WEAPON_SHOTGUN);
+						GameServer()->m_pController->ball_game_state = IGameController::BALL_GAME_RUNNING;
 						if (g_Config.m_SvMultiBall) {
 							RespawnTime = g_pData->m_aPickups[m_Type].m_Respawntime;
 						}

@@ -127,7 +127,6 @@ bool IGameController::CanSpawn(int Team, vec2 *pOutPos)
 
 bool IGameController::OnEntity(int Index, vec2 Pos)
 {
-	ball_game_state = BALL_GAME_RESPAWN;
 	int Type = -1;
 	int SubType = 0;
 
@@ -185,6 +184,7 @@ void IGameController::EndRound()
 void IGameController::ResetGame()
 {
 	GameServer()->m_World.m_ResetRequested = true;
+	ball_game_state = BALL_GAME_RESPAWN;
 }
 
 const char *IGameController::GetTeamName(int Team)
