@@ -105,22 +105,29 @@ int CCollision::IntersectLine(vec2 Pos0, vec2 Pos1, vec2 *pOutCollision, vec2 *p
 	vec2 Cur = Pos0;
 	vec2 Dist = Pos1 - Pos0;
 	vec2 Last = Pos0;
-	int Dir_x;
-	int Dir_y;
+	int DirX;
+	int DirY;
 
-	if (Dist.x > 0) {
-		Dir_x = 1;
-	} else {
-		Dir_x = -1;
+	if (Dist.x > 0)
+	{
+		DirX = 1;
 	}
-	if (Dist.y > 0) {
-		Dir_y = 1;
-	} else {
-		Dir_y = -1;
+	else
+	{
+		DirX = -1;
+	}
+	if (Dist.y > 0)
+	{
+		DirY = 1;
+	}
+	else
+	{
+		DirY = -1;
 	}
 
-	// Move along the line Pos0 -> Pos1 by jumping between tile intersection points
-	while ((Pos1.x - Cur.x) * Dir_x >= 0 && (Pos1.y - Cur.y) * Dir_y >= 0) {
+	// Move along the line Pos0 -> Pos1 by jumping between tile border points
+	while ((Pos1.x - Cur.x) * DirX >= 0 && (Pos1.y - Cur.y) * DirY >= 0)
+	{
 		if((ball && BallCheckPoint(Cur.x, Cur.y)) || (!ball && CheckPoint(Cur.x, Cur.y)))
 		{
 			if(pOutCollision)
@@ -130,31 +137,47 @@ int CCollision::IntersectLine(vec2 Pos0, vec2 Pos1, vec2 *pOutCollision, vec2 *p
 			return GetCollisionAt(Cur.x, Cur.y);
 		}
 
-
 		Last = Cur;
-		vec2 next;
-		if (Dir_x > 0) {
-			next.x = ((int)Cur.x/32 + 1) * 32;
-		} else {
-			next.x = ((int)Cur.x/32) * 32 - 0.5001;
-		}
-		if (Dir_y > 0) {
-			next.y = ((int)Cur.y/32 + 1) * 32;
-		} else {
-			next.y = ((int)Cur.y/32) * 32 - 0.5001;
-		}
-		vec2 rem_dist;
-		rem_dist.x = (next.x - Cur.x) / Dist.x;
-		rem_dist.y = (next.y - Cur.y) / Dist.y;
+		vec2 Next;
 
-		if (rem_dist.x < rem_dist.y) {
-			Cur.x += rem_dist.x * Dist.x;
-			Cur.y += rem_dist.x * Dist.y;
-		} else {
-			Cur.x += rem_dist.y * Dist.x;
-			Cur.y += rem_dist.y * Dist.y;
+		/* Calculate the next border point in X and Y direction */
+		if (DirX > 0)
+		{
+			Next.x = (round(Cur.x)/32 + 1) * 32;
+		}
+		else
+		{
+			Next.x = (round(Cur.x)/32) * 32 - 0.51;
+		}
+		if (DirY > 0)
+		{
+			Next.y = (round(Cur.y)/32 + 1) * 32;
+		}
+		else
+		{
+			Next.y = (round(Cur.y)/32) * 32 - 0.51;
+		}
+
+		// Calculate remaining distances and which intersection point
+		// (X or Y) is closer on the Pos0->Pos1 line.
+		vec2 RemainDist;
+		RemainDist.x = (Next.x - Cur.x) / Dist.x;
+		RemainDist.y = (Next.y - Cur.y) / Dist.y;
+
+		/* Create the the next position to check */
+		if (RemainDist.x < RemainDist.y)
+		{
+			Cur.x += RemainDist.x * Dist.x;
+			Cur.y += RemainDist.x * Dist.y;
+		}
+		else
+		{
+			Cur.x += RemainDist.y * Dist.x;
+			Cur.y += RemainDist.y * Dist.y;
 		}
 	}
+
+	// Also check the Pos1 tile
 	if((ball && BallCheckPoint(Pos1.x, Pos1.y)) || (!ball && CheckPoint(Pos1.x, Pos1.y)))
 	{
 		if(pOutCollision)
@@ -169,9 +192,6 @@ int CCollision::IntersectLine(vec2 Pos0, vec2 Pos1, vec2 *pOutCollision, vec2 *p
 	if(pOutBeforeCollision)
 		*pOutBeforeCollision = Pos1;
 	return 0;
-
-
-
 }
 
 // TODO: OPT: rewrite this smarter!
