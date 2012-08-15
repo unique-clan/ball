@@ -49,9 +49,11 @@ void CGameControllerBALL::Goal(CPlayer *p, int team_scored, int start_team, int 
 	GameServer()->m_pController->m_aTeamscore[team_scored] += 1 + death_goal + passed;
 	if (p && start_team == p->GetTeam()) {
 		if (team_scored == p->GetTeam())
-			p->m_Score += 1 + death_goal + passed;
+			p->m_Score += 1 + death_goal;
 		else
 			--p->m_Score;
+		if (passed)
+			pass_p->m_Score += 1;
 		char dunk[64] = "";
 		char pass[512] = "";
 		if (death_goal)
