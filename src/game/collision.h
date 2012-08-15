@@ -40,6 +40,7 @@ public:
 	bool CheckPoint(vec2 Pos) { return CheckPoint(Pos.x, Pos.y); }
 	bool BallCheckPoint(float x, float y) { return IsTileBallEvent(round(x), round(y)); }
 	bool BallCheckPoint(vec2 Pos) { return IsTileBallEvent(round(Pos.x), round(Pos.y)); }
+	static int MaskSCollision(int col) { return col & (~15); }
 	int GetCollisionAt(float x, float y) { return GetTile(round(x), round(y)); }
 	int GetWidth() { return m_Width; };
 	int GetHeight() { return m_Height; };

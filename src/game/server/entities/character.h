@@ -132,6 +132,9 @@ private:
 	CCharacterCore m_SendCore; // core that we should send
 	CCharacterCore m_ReckoningCore; // the dead reckoning core
 
+	void GetBallFromTarget(CCharacter *pTarget);
+	vec2 m_GoalkeeperPos;
+	int m_BallShootTick;
 	friend class CBall;
 	friend class CGameControllerBALL;
 };

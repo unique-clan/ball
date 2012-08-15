@@ -9,6 +9,7 @@
 #include "laser.h"
 #include "projectile.h"
 #include "ball.h"
+#include <stdio.h>
 
 //input count
 struct CInputCount
@@ -89,9 +90,9 @@ void CCharacter::Destroy()
 
 void CCharacter::SetWeapon(int W)
 {
-	if (m_aWeapons[WEAPON_SHOTGUN].m_Ammo && m_aWeapons[WEAPON_SHOTGUN].m_Got)
+	if (m_aWeapons[WEAPON_SHOTGUN].m_Got)
 		W = WEAPON_SHOTGUN;
-	if (W == WEAPON_SHOTGUN && (m_aWeapons[WEAPON_SHOTGUN].m_Ammo == 0 || m_aWeapons[WEAPON_SHOTGUN].m_Got == 0))
+	if (W == WEAPON_SHOTGUN && !m_aWeapons[WEAPON_SHOTGUN].m_Got)
 		W = WEAPON_HAMMER;
 
 	if(W == m_ActiveWeapon)
@@ -118,21 +119,10 @@ bool CCharacter::IsGrounded()
 
 void CCharacter::HandleNinja()
 {
-	if(m_ActiveWeapon != WEAPON_NINJA)
-		return;
-
-	if ((Server()->Tick() - m_Ninja.m_ActivationTick) > (g_pData->m_Weapons.m_Ninja.m_Duration * Server()->TickSpeed() / 1000))
-	{
-		// time's up, return
-		m_aWeapons[WEAPON_NINJA].m_Got = false;
-		m_ActiveWeapon = m_LastWeapon;
-
-		SetWeapon(m_ActiveWeapon);
+	if(m_ActiveWeapon != WEAPON_NINJA) {
+		m_Ninja.m_CurrentMoveTime = 0;
 		return;
 	}
-
-	// force ninja Weapon
-	SetWeapon(WEAPON_NINJA);
 
 	m_Ninja.m_CurrentMoveTime--;
 
@@ -184,9 +174,11 @@ void CCharacter::HandleNinja()
 				// set his velocity to fast upward (for now)
 				if(m_NumObjectsHit < 10)
 					m_apHitObjects[m_NumObjectsHit++] = aEnts[i];
-
-				aEnts[i]->TakeDamage(vec2(0, -10.0f), g_pData->m_Weapons.m_Ninja.m_pBase->m_Damage, m_pPlayer->GetCID(), WEAPON_NINJA);
+				GetBallFromTarget(aEnts[i]);
+				aEnts[i]->TakeDamage(vec2(0, -10.0f), 1, m_pPlayer->GetCID(), WEAPON_NINJA);
 			}
+			if (m_aWeapons[WEAPON_SHOTGUN].m_Got)
+				SetWeapon(WEAPON_SHOTGUN);
 		}
 
 		return;
@@ -199,11 +191,21 @@ void CCharacter::HandleNinja()
 void CCharacter::DoWeaponSwitch()
 {
 	// make sure we can switch
-	if(m_ReloadTimer != 0 || m_QueuedWeapon == -1 || m_aWeapons[WEAPON_NINJA].m_Got)
+	if(m_ReloadTimer != 0 || m_QueuedWeapon == -1)
 		return;
 
 	// switch Weapon
 	SetWeapon(m_QueuedWeapon);
+}
+
+void CCharacter::GetBallFromTarget(CCharacter *pTarget)
+{
+	if (pTarget->m_aWeapons[WEAPON_SHOTGUN].m_Got) {
+		GiveWeapon(WEAPON_SHOTGUN, 1);
+		pTarget->m_aWeapons[WEAPON_SHOTGUN].m_Ammo = 0;
+		pTarget->m_aWeapons[WEAPON_SHOTGUN].m_Got = false;
+		pTarget->SetWeapon(pTarget->m_LastWeapon);
+	}
 }
 
 void CCharacter::HandleWeaponSwitch()
@@ -249,8 +251,6 @@ void CCharacter::HandleWeaponSwitch()
 
 void CCharacter::FireWeapon(bool force)
 {
-	bool set_shotgun = false;
-
 	if (!force && m_Health == 0)
 		return;
 	if(!force && m_ReloadTimer != 0)
@@ -318,12 +318,8 @@ void CCharacter::FireWeapon(bool force)
 				else
 					Dir = vec2(0.f, -1.f);
 
-				if (pTarget->m_aWeapons[WEAPON_SHOTGUN].m_Ammo) {
-					GiveWeapon(WEAPON_SHOTGUN, pTarget->m_aWeapons[WEAPON_SHOTGUN].m_Ammo);
-					set_shotgun = true;
-					pTarget->m_aWeapons[WEAPON_SHOTGUN].m_Ammo = 0;
-					pTarget->m_aWeapons[WEAPON_SHOTGUN].m_Got = 0;
-					pTarget->SetWeapon(pTarget->m_LastWeapon);
+				if (pTarget->m_aWeapons[WEAPON_SHOTGUN].m_Got) {
+					GetBallFromTarget(pTarget);
 					pTarget->TakeDamage(vec2(0.f, -1.f) + normalize(Dir + vec2(0.f, -1.1f)) * 10.0f, 0,
 						m_pPlayer->GetCID(), m_ActiveWeapon);
 				} else {
@@ -384,6 +380,7 @@ void CCharacter::FireWeapon(bool force)
 			Server()->SendMsg(&Msg, 0, m_pPlayer->GetCID());
 
 			GameServer()->CreateSound(m_Pos, SOUND_SHOTGUN_FIRE);
+			m_Armor = max(0, m_Armor - 1);
 		} break;
 
 		case WEAPON_GRENADE:
@@ -432,24 +429,24 @@ void CCharacter::FireWeapon(bool force)
 
 	m_AttackTick = Server()->Tick();
 
-	if(m_aWeapons[m_ActiveWeapon].m_Ammo > 0) // -1 == unlimited
+	if (m_ActiveWeapon == WEAPON_SHOTGUN) {
+		m_aWeapons[WEAPON_SHOTGUN].m_Got = false;
+		m_aWeapons[WEAPON_SHOTGUN].m_Ammo = 0;
+		if (m_LastWeapon != WEAPON_SHOTGUN)
+			SetWeapon(m_LastWeapon);
+		else
+			SetWeapon(WEAPON_HAMMER);
+		m_ReloadTimer = Server()->TickSpeed() / 4;
+		return;
+	}
+	if(m_ActiveWeapon != WEAPON_SHOTGUN && m_aWeapons[m_ActiveWeapon].m_Ammo > 0) // -1 == unlimited
 	{
 		m_aWeapons[m_ActiveWeapon].m_Ammo--;
-		if (m_aWeapons[m_ActiveWeapon].m_Ammo == 0 && m_ActiveWeapon == WEAPON_SHOTGUN) {
-			m_aWeapons[WEAPON_SHOTGUN].m_Got = 0;
-			if (m_LastWeapon != WEAPON_SHOTGUN)
-				SetWeapon(m_LastWeapon);
-			else
-				SetWeapon(WEAPON_HAMMER);
-			m_ReloadTimer = 0;
-			return;
-		}
 	}
 
 	if(!m_ReloadTimer)
 		m_ReloadTimer = g_pData->m_Weapons.m_aId[m_ActiveWeapon].m_Firedelay * Server()->TickSpeed() / 1000;
-	if (set_shotgun)
-		SetWeapon(WEAPON_SHOTGUN);
+	SetWeapon(m_ActiveWeapon);
 }
 
 void CCharacter::HandleWeapons()
@@ -495,6 +492,13 @@ void CCharacter::HandleWeapons()
 
 bool CCharacter::GiveWeapon(int Weapon, int Ammo)
 {
+	if (Weapon == WEAPON_SHOTGUN)
+	{
+		m_aWeapons[WEAPON_SHOTGUN].m_Got = true;
+		m_aWeapons[WEAPON_SHOTGUN].m_Ammo = 10;
+		m_BallShootTick = Server()->Tick() +  g_Config.m_SvBaseKeep + m_Armor * g_Config.m_SvArmorKeep;
+		return true;
+	}
 	if(m_aWeapons[Weapon].m_Ammo < g_pData->m_Weapons.m_aId[Weapon].m_Maxammo || !m_aWeapons[Weapon].m_Got)
 	{
 		m_aWeapons[Weapon].m_Got = true;
@@ -512,6 +516,7 @@ void CCharacter::GiveNinja()
 	if (m_ActiveWeapon != WEAPON_NINJA)
 		m_LastWeapon = m_ActiveWeapon;
 	m_ActiveWeapon = WEAPON_NINJA;
+	m_GoalkeeperPos = m_Pos;
 
 	GameServer()->CreateSound(m_Pos, SOUND_PICKUP_NINJA);
 }
@@ -580,6 +585,15 @@ void CCharacter::Tick()
 			m_HealthRegenTick = -1;
 	}
 
+	if (m_aWeapons[WEAPON_SHOTGUN].m_Got) {
+		if (Server()->Tick() == m_BallShootTick) {
+			FireWeapon(true);
+		} else {
+			m_aWeapons[WEAPON_SHOTGUN].m_Ammo = min((m_BallShootTick - Server()->Tick()) / Server()->TickSpeed() + 1, 10);
+		}
+	}
+
+
 	m_Core.m_Input = m_Input;
 	m_Core.Tick(m_Health!=0);
 
@@ -592,13 +606,46 @@ void CCharacter::Tick()
 	}
 
 	// handle death-tiles and leaving gamelayer
-	if(GameServer()->Collision()->GetCollisionAt(m_Pos.x+m_ProximityRadius/3.f, m_Pos.y-m_ProximityRadius/3.f)&CCollision::COLFLAG_DEATH ||
-		GameServer()->Collision()->GetCollisionAt(m_Pos.x+m_ProximityRadius/3.f, m_Pos.y+m_ProximityRadius/3.f)&CCollision::COLFLAG_DEATH ||
-		GameServer()->Collision()->GetCollisionAt(m_Pos.x-m_ProximityRadius/3.f, m_Pos.y-m_ProximityRadius/3.f)&CCollision::COLFLAG_DEATH ||
-		GameServer()->Collision()->GetCollisionAt(m_Pos.x-m_ProximityRadius/3.f, m_Pos.y+m_ProximityRadius/3.f)&CCollision::COLFLAG_DEATH ||
-		GameLayerClipped(m_Pos))
+	if (GameLayerClipped(m_Pos))
 	{
 		Die(m_pPlayer->GetCID(), WEAPON_WORLD);
+	}
+	else
+	{
+		float check_pos[4][2] = {
+			{m_ProximityRadius/2.f, m_ProximityRadius/2.f},
+			{-m_ProximityRadius/2.f, m_ProximityRadius/2.f},
+			{-m_ProximityRadius/2.f, -m_ProximityRadius/2.f},
+			{m_ProximityRadius/2.f, -m_ProximityRadius/2.f}};
+		for (int i = 4; i--; ) {
+			int coll = GameServer()->Collision()->GetCollisionAt(m_Pos.x + check_pos[i][0], m_Pos.y + check_pos[i][1]);
+			if (coll & CCollision::COLFLAG_DEATH) {
+				if (m_aWeapons[WEAPON_SHOTGUN].m_Ammo) {
+					coll = CCollision::MaskSCollision(coll);
+					if (coll == CCollision::SFLAG_GOAL_TEAM_0 || coll == CCollision::SFLAG_GOAL_TEAM_1) {
+						m_aWeapons[WEAPON_SHOTGUN].m_Ammo = 0;
+						m_aWeapons[WEAPON_SHOTGUN].m_Got = false;
+						if (coll == CCollision::SFLAG_GOAL_TEAM_1)
+							GameServer()->m_pController->Goal(m_pPlayer, 0, m_pPlayer->GetTeam(), 1);
+						else
+							GameServer()->m_pController->Goal(m_pPlayer, 1, m_pPlayer->GetTeam(), 1);
+						return;
+					}
+				}
+				Die(m_pPlayer->GetCID(), WEAPON_WORLD);
+				break;
+			}
+			if (m_aWeapons[WEAPON_NINJA].m_Got) {
+				if ((m_pPlayer->GetTeam() == 0 && coll & CCollision::SFLAG_GOALIE_LIMIT_0)
+					|| (m_pPlayer->GetTeam() == 1 && coll & CCollision::SFLAG_GOALIE_LIMIT_1)) {
+					m_Core.m_Vel = vec2(0,0);
+					m_Core.m_Pos = m_Pos = m_GoalkeeperPos;
+				}
+			}
+		}
+	}
+	if (m_aWeapons[WEAPON_NINJA].m_Got) {
+		m_Core.m_Jumped = 0;
 	}
 
 	// handle Weapons

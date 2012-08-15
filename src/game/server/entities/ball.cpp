@@ -76,6 +76,8 @@ void CBall::Tick()
 			|| TargetChr != OwnerChar)) {
 		TargetChr->GiveWeapon(WEAPON_SHOTGUN, 1);
 		TargetChr->SetWeapon(WEAPON_SHOTGUN);
+		if (TargetChr->GetPlayer()->GetCID() != m_Player)
+			GameServer()->m_pController->m_LastBallPlayer = m_Player;
 		GameServer()->m_World.DestroyEntity(this);
 		return;
 	} else if (TargetChr && TargetChr == OwnerChar && Server()->Tick() - m_LastOwnerInterTick <= 2) {
@@ -83,44 +85,21 @@ void CBall::Tick()
 	}
 
 
-	if (Collide) {
-		if (Collide == CCollision::SFLAG_GOAL_TEAM_0 || Collide == CCollision::SFLAG_GOAL_TEAM_1) {
-			GameServer()->m_pController->ball_game_state = IGameController::BALL_GAME_RESPAWN;
+	if (GameLayerClipped(CurPos)) {
+		GameServer()->m_pController->ball_game_state = IGameController::BALL_GAME_RESPAWN;
+		GameServer()->CreateSoundGlobal(SOUND_CTF_CAPTURE);
+		GameServer()->m_World.DestroyEntity(this);
+	} else if (Collide) {
+		int scol = CCollision::MaskSCollision(Collide);
+		if (scol == CCollision::SFLAG_GOAL_TEAM_0 || scol == CCollision::SFLAG_GOAL_TEAM_1) {
 			int team_scored;
-			char aBuf[512];
-			if (Collide == CCollision::SFLAG_GOAL_TEAM_0) {
+			if (scol == CCollision::SFLAG_GOAL_TEAM_0) {
 				team_scored = 1;
 			} else {
 				team_scored = 0;
 			}
-			++GameServer()->m_pController->m_aTeamscore[team_scored];
-			if (p && m_Team == p->GetTeam()) {
-				if (team_scored == p->GetTeam())
-					++p->m_Score;
-				else
-					--p->m_Score;
-				if (team_scored == 0) {
-					str_format(aBuf, sizeof(aBuf), "%s scored for team red", Server()->ClientName(m_Player));
-				} else {
-					str_format(aBuf, sizeof(aBuf), "%s scored for team blue", Server()->ClientName(m_Player));
-				}
-			} else {
-				if (team_scored == 0) {
-					str_format(aBuf, sizeof(aBuf), "Team red scored");
-				} else {
-					str_format(aBuf, sizeof(aBuf), "Team blue scored");
-				}
-			}
-			GameServer()->SendChat(-1, -2, aBuf);
-			GameServer()->CreateSoundGlobal(SOUND_CTF_CAPTURE);
+			GameServer()->m_pController->Goal(p, team_scored, m_Team);
 			GameServer()->m_World.DestroyEntity(this);
-			if (g_Config.m_SvGoalRespawn) {
-				for (int i = 0; i != MAX_CLIENTS; ++i) {
-					CPlayer *p = GameServer()->m_apPlayers[i];
-					if (p)
-						p->KillCharacter();
-				}
-			}
 		} else {
 			vec2 col_pos;
 			col_pos.x = LastPos.x;

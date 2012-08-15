@@ -129,6 +129,7 @@ bool IGameController::OnEntity(int Index, vec2 Pos)
 {
 	int Type = -1;
 	int SubType = 0;
+	int Team = -1;
 
 	if(Index == ENTITY_SPAWN)
 		m_aaSpawnPoints[0][m_aNumSpawnPoints[0]++] = Pos;
@@ -155,15 +156,22 @@ bool IGameController::OnEntity(int Index, vec2 Pos)
 		Type = POWERUP_WEAPON;
 		SubType = WEAPON_RIFLE;
 	}
-	else if(Index == ENTITY_POWERUP_NINJA && g_Config.m_SvPowerups)
+	else if(Index == ENTITY_POWERUP_NINJA_TEAM_0 && g_Config.m_SvPowerups)
 	{
 		Type = POWERUP_NINJA;
 		SubType = WEAPON_NINJA;
+		Team = 0;
+	}
+	else if(Index == ENTITY_POWERUP_NINJA_TEAM_1 && g_Config.m_SvPowerups)
+	{
+		Type = POWERUP_NINJA;
+		SubType = WEAPON_NINJA;
+		Team = 1;
 	}
 
 	if(Type != -1)
 	{
-		CPickup *pPickup = new CPickup(&GameServer()->m_World, Type, SubType);
+		CPickup *pPickup = new CPickup(&GameServer()->m_World, Type, SubType, Team);
 		pPickup->m_Pos = Pos;
 		return true;
 	}

@@ -6,7 +6,7 @@
 #include <game/server/gamecontroller.h>
 #include <engine/shared/config.h>
 
-CPickup::CPickup(CGameWorld *pGameWorld, int Type, int SubType)
+CPickup::CPickup(CGameWorld *pGameWorld, int Type, int SubType, int Team)
 : CEntity(pGameWorld, CGameWorld::ENTTYPE_PICKUP)
 {
 	m_Type = Type;
@@ -17,6 +17,8 @@ CPickup::CPickup(CGameWorld *pGameWorld, int Type, int SubType)
 
 	GameWorld()->InsertEntity(this);
 	m_SpawnTickSet = 0;
+	m_Goalkeeper = -1;
+	m_Team = Team;
 }
 
 void CPickup::Reset()
@@ -29,6 +31,13 @@ void CPickup::Reset()
 
 void CPickup::Tick()
 {
+	if (m_Type == POWERUP_NINJA) {
+		CCharacter *Goalkeeper = GameServer()->GetPlayerChar(m_Goalkeeper);
+		if (!Goalkeeper) {
+			m_SpawnTick = -1;
+			m_Goalkeeper = -1;
+		}
+	}
 	if (m_Type == POWERUP_WEAPON && m_Subtype == WEAPON_SHOTGUN) {
 		if (g_Config.m_SvMultiBall) {
 			switch (GameServer()->m_pController->ball_game_state) {
@@ -77,7 +86,7 @@ void CPickup::Tick()
 	}
 	// Check if a player intersected us
 	CCharacter *pChr = GameServer()->m_World.ClosestCharacter(m_Pos, 20.0f, 0);
-	if(pChr && pChr->IsAlive())
+	if(pChr && pChr->IsAlive() && (m_Team == -1 || m_Team == pChr->GetPlayer()->GetTeam()))
 	{
 		// player picked us up, is someone was hooking us, let them go
 		int RespawnTime = -1;
@@ -134,17 +143,8 @@ void CPickup::Tick()
 				{
 					// activate ninja on target player
 					pChr->GiveNinja();
-					RespawnTime = g_pData->m_aPickups[m_Type].m_Respawntime;
-
-					// loop through all players, setting their emotes
-					CCharacter *pC = static_cast<CCharacter *>(GameServer()->m_World.FindFirst(CGameWorld::ENTTYPE_CHARACTER));
-					for(; pC; pC = (CCharacter *)pC->TypeNext())
-					{
-						if (pC != pChr)
-							pC->SetEmote(EMOTE_SURPRISE, Server()->Tick() + Server()->TickSpeed());
-					}
-
-					pChr->SetEmote(EMOTE_ANGRY, Server()->Tick() + 1200 * Server()->TickSpeed() / 1000);
+					m_Goalkeeper = pChr->GetPlayer()->GetCID();
+					RespawnTime = Server()->Tick() + 1;
 					break;
 				}
 

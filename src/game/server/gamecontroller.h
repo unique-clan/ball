@@ -146,6 +146,9 @@ public:
 		BALL_GAME_RESPAWN,
 		BALL_GAME_RUNNING
 	} ball_game_state;
+	int m_LastBallPlayer;
+	virtual void Goal(CPlayer *p, int team_scored, int start_team, int death_goal = 0) {;}
+	friend class CGameControllerBALL;
 };
 
 #endif

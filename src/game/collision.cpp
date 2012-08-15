@@ -64,6 +64,12 @@ void CCollision::Init(class CLayers *pLayers)
 		case TILE_GOALIE_LIMIT_1:
 			m_pTiles[i].m_Index = SFLAG_GOALIE_LIMIT_1;
 			break;
+		case TILE_GOAL_DEATH_TEAM_O:
+			m_pTiles[i].m_Index = SFLAG_GOAL_TEAM_0 | COLFLAG_DEATH;
+			break;
+		case TILE_GOAL_DEATH_TEAM_1:
+			m_pTiles[i].m_Index = SFLAG_GOAL_TEAM_1 | COLFLAG_DEATH;
+			break;
 		case TILE_BALL_SOLID:
 			m_pTiles[i].m_Index = COLFLAG_BALL_SOLID;
 			break;
@@ -91,13 +97,11 @@ bool CCollision::IsTileSolid(int x, int y)
 
 bool CCollision::IsTileBallEvent(int x, int y)
 {
-	switch (GetTile(x, y)) {
-	case SFLAG_GOAL_TEAM_0:
-	case SFLAG_GOAL_TEAM_1:
+	int tile = GetTile(x, y);
+	int stile = MaskSCollision(tile);
+	if (stile == SFLAG_GOAL_TEAM_0 || stile == SFLAG_GOAL_TEAM_1)
 		return true;
-	default:
-		return GetTile(x, y)&COLFLAG_BALL_SOLID;
-	}
+	return GetTile(x, y)&COLFLAG_BALL_SOLID;
 }
 
 // Calculate next tile in the given direction
