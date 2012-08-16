@@ -56,12 +56,12 @@ void CBall::Tick()
 	vec2 PrevPos = GetPos(Pt);
 	vec2 CurPos = GetPos(Ct);
 	vec2 LastPos;
-	vec2 ColPos;
+	vec2 ChrPos;
 	int Collide = GameServer()->Collision()->IntersectLine(PrevPos, CurPos, NULL, &LastPos, true);
 	int Collide_x;
 	int Collide_y;
 	CCharacter *OwnerChar = GameServer()->GetPlayerChar(m_Owner);
-	CCharacter *TargetChr = GameServer()->m_World.IntersectCharacter(PrevPos, CurPos, 6.0f, CurPos, NULL);
+	CCharacter *TargetChr = GameServer()->m_World.IntersectCharacter(PrevPos, CurPos, 6.0f, ChrPos, NULL);
 	CPlayer *p;
 	if (m_Player != -1) {
 		p = GameServer()->m_apPlayers[m_Player];
