@@ -28,6 +28,7 @@ int CGameControllerBALL::OnCharacterDeath(class CCharacter *pVictim, class CPlay
 
 void CGameControllerBALL::Tick()
 {
+	IGameController::Tick();
 	if (m_LastBallPlayer != -1) {
 		CPlayer *p = GameServer()->m_apPlayers[m_LastBallPlayer];
 		if (p == NULL)
