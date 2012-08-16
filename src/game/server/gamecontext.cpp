@@ -14,6 +14,7 @@
 #include "gamemodes/ctf.h"
 #include "gamemodes/mod.h"
 #include "gamemodes/ball.h"
+#include <string.h>
 
 enum
 {
@@ -587,6 +588,30 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 			Team = pPlayer->GetTeam();
 		else
 			Team = CGameContext::CHAT_ALL;
+		if (
+				strcmp("/info", pMsg->m_pMessage) == 0
+				|| strcmp(".info", pMsg->m_pMessage) == 0
+				|| strcmp("!info", pMsg->m_pMessage) == 0) {
+			char buf[] =
+				"BALL mod http://github.com/scosu/teeworlds branch ball0.6.1\n"
+				"Made by scosu.\n"
+				"For Help type /help";
+			SendChat(-1, ClientID, buf);
+			return;
+		} else if (
+				strcmp("/help", pMsg->m_pMessage) == 0
+				|| strcmp(".help", pMsg->m_pMessage) == 0
+				|| strcmp("!help", pMsg->m_pMessage) == 0) {
+			char buf[] =
+				"Take the ball (shotgun) and shoot into the goal\n"
+				"Score: Goal 1, Pass +1, Slam dunk +1\n"
+				"Goalkeeper: Pickup ninja, end with selfkill\n"
+				"Armor: extend time you can keep the ball\n"
+				"Health: You are stunned for a while if health is 0.\n"
+				"Hammer: Steal the ball from another player";
+			SendChat(-1, ClientID, buf);
+			return;
+		}
 
 		if(g_Config.m_SvSpamprotection && pPlayer->m_LastChat && pPlayer->m_LastChat+Server()->TickSpeed() > Server()->Tick())
 			return;
