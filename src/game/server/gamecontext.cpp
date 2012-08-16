@@ -588,28 +588,37 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 			Team = pPlayer->GetTeam();
 		else
 			Team = CGameContext::CHAT_ALL;
+		char buf[1024] = "";
+
 		if (
 				strcmp("/info", pMsg->m_pMessage) == 0
 				|| strcmp(".info", pMsg->m_pMessage) == 0
 				|| strcmp("!info", pMsg->m_pMessage) == 0) {
-			char buf[] =
+			strcpy(buf,
 				"BALL mod http://github.com/scosu/teeworlds branch ball0.6.1\n"
 				"Made by scosu.\n"
-				"For Help type /help";
-			SendChat(-1, ClientID, buf);
-			return;
+				"For Help type /help");
 		} else if (
 				strcmp("/help", pMsg->m_pMessage) == 0
 				|| strcmp(".help", pMsg->m_pMessage) == 0
 				|| strcmp("!help", pMsg->m_pMessage) == 0) {
-			char buf[] =
+			strcpy(buf,
 				"Take the ball (shotgun) and shoot into the goal\n"
 				"Score: Goal 1, Pass +1, Slam dunk +1\n"
 				"Goalkeeper: Pickup ninja, end with selfkill\n"
 				"Armor: extend time you can keep the ball\n"
 				"Health: You are stunned for a while if health is 0.\n"
-				"Hammer: Steal the ball from another player";
-			SendChat(-1, ClientID, buf);
+				"Hammer: Steal the ball from another player");
+		}
+		if (buf[0] != '\0') {
+
+			Console()->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "Request", pMsg->m_pMessage);
+
+			CNetMsg_Sv_Chat Msg;
+			Msg.m_Team = 0;
+			Msg.m_ClientID = -1;
+			Msg.m_pMessage = buf;
+			Server()->SendPackMsg(&Msg, MSGFLAG_VITAL, ClientID);
 			return;
 		}
 
