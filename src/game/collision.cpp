@@ -112,7 +112,7 @@ vec2 CCollision::NextTile(vec2 Pos, vec2 Dir)
 	/* Calculate the next border point in X and Y direction */
 	if (Dir.x > 0)
 	{
-		Next.x = (round(Pos.x)/32 + 1) * 32;
+		Next.x = (round(Pos.x)/32 + 1) * 32 - 0.49;
 	}
 	else
 	{
@@ -120,7 +120,7 @@ vec2 CCollision::NextTile(vec2 Pos, vec2 Dir)
 	}
 	if (Dir.y > 0)
 	{
-		Next.y = (round(Pos.y)/32 + 1) * 32;
+		Next.y = (round(Pos.y)/32 + 1) * 32 - 0.49;
 	}
 	else
 	{
