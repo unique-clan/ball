@@ -27,6 +27,7 @@ CBall::CBall(CGameWorld *pGameWorld, int Owner, vec2 Pos, vec2 Dir)
 		m_Team = -1;
 	}
 	m_StartTick = Server()->Tick();
+	m_RespawnTick = Server()->Tick() + g_Config.m_SvBallLifetime * Server()->TickSpeed();
 	m_LastOwnerInterTick = Server()->Tick();
 
 	GameWorld()->InsertEntity(this);
@@ -63,6 +64,8 @@ void CBall::Tick()
 	CCharacter *OwnerChar = GameServer()->GetPlayerChar(m_Owner);
 	CCharacter *TargetChr = GameServer()->m_World.IntersectCharacter(PrevPos, CurPos, 6.0f, ChrPos, NULL);
 	CPlayer *p;
+
+
 	if (m_Player != -1) {
 		p = GameServer()->m_apPlayers[m_Player];
 		if (!p)
@@ -85,9 +88,11 @@ void CBall::Tick()
 	}
 
 
-	if (GameLayerClipped(CurPos)) {
-		GameServer()->m_pController->ball_game_state = IGameController::BALL_GAME_RESPAWN;
-		GameServer()->CreateSoundGlobal(SOUND_CTF_CAPTURE);
+	if (GameLayerClipped(CurPos) || m_RespawnTick < Server()->Tick() || GameServer()->Collision()->GetCollisionAt(PrevPos.x, PrevPos.y) & CCollision::COLFLAG_SOLID) {
+		if (!g_Config.m_SvMultiBall) {
+			GameServer()->m_pController->ball_game_state = IGameController::BALL_GAME_RESPAWN;
+			GameServer()->CreateSoundGlobal(SOUND_CTF_CAPTURE);
+		}
 		GameServer()->m_World.DestroyEntity(this);
 	} else if (Collide) {
 		int scol = CCollision::MaskSCollision(Collide);

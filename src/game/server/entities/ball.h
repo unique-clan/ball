@@ -23,6 +23,7 @@ private:
 	int m_Damage;
 	int m_Weapon;
 	int m_StartTick;
+	int m_RespawnTick;
 	int m_LastOwnerInterTick;
 };
 
