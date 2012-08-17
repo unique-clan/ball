@@ -84,7 +84,7 @@ MACRO_CONFIG_INT(SvVoteKickBantime, sv_vote_kick_bantime, 5, 0, 1440, CFGFLAG_SE
 MACRO_CONFIG_INT(SvMultiBall, sv_ball_multi, 0, 0, 1, CFGFLAG_SERVER, "Multiball support")
 MACRO_CONFIG_INT(SvGoalRespawn, sv_ball_goal_respawn, 1, 0, 1, CFGFLAG_SERVER, "Respawn all players after a goal")
 MACRO_CONFIG_INT(SvBallRespawn, sv_ball_respawn, 300, 0, 100000, CFGFLAG_SERVER, "Ball respawn time after goal")
-MACRO_CONFIG_INT(SvBallDecay, sv_ball_respawn, 10, 0, 100, CFGFLAG_SERVER, "Ball bounce speed decaying")
+MACRO_CONFIG_INT(SvBallDecay, sv_ball_decay, 10, 0, 100, CFGFLAG_SERVER, "Ball bounce speed decaying")
 MACRO_CONFIG_INT(SvHealthRegenInt, sv_health_regen, 75, 0, 10000, CFGFLAG_SERVER, "Ticks between regenerating health")
 MACRO_CONFIG_INT(SvHealthStunnedTicks, sv_health_stunned, 200, 0, 10000, CFGFLAG_SERVER, "# Ticks you are stunned when health is down to 1")
 MACRO_CONFIG_INT(SvBaseKeep, sv_ball_base_keep, 150, 0, 1000000, CFGFLAG_SERVER, "# Ticks you are guaranteed to keep the ball")
