@@ -619,7 +619,9 @@ void CCharacter::Tick()
 			{m_ProximityRadius/2.f, -m_ProximityRadius/2.f}};
 		for (int i = 4; i--; ) {
 			int coll = GameServer()->Collision()->GetCollisionAt(m_Pos.x + check_pos[i][0], m_Pos.y + check_pos[i][1]);
-			if (coll & CCollision::COLFLAG_DEATH) {
+			if (coll & CCollision::COLFLAG_DEATH
+					|| (CCollision::MaskSCollision(coll) == CCollision::SFLAG_LIMIT_TEAM_0 && m_pPlayer->GetTeam() == 0)
+					|| (CCollision::MaskSCollision(coll) == CCollision::SFLAG_LIMIT_TEAM_1 && m_pPlayer->GetTeam() == 1)) {
 				if (m_aWeapons[WEAPON_SHOTGUN].m_Ammo) {
 					coll = CCollision::MaskSCollision(coll);
 					if (coll == CCollision::SFLAG_GOAL_TEAM_0 || coll == CCollision::SFLAG_GOAL_TEAM_1) {
