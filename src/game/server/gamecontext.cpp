@@ -604,7 +604,7 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 				|| strcmp("!help", pMsg->m_pMessage) == 0) {
 			strcpy(buf,
 				"Take the ball (shotgun) and shoot into the goal\n"
-				"Score: Goal 1, Pass +1, Slam dunk +1\n"
+				"Score: Goal 2, Pass +1, Slam dunk +1\n"
 				"Goalkeeper: Pickup ninja, end with selfkill\n"
 				"Armor: extend time you can keep the ball\n"
 				"Health: You are stunned for a while if health is 0.\n"
