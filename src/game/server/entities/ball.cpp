@@ -131,6 +131,7 @@ void CBall::Tick()
 			m_Direction.x *= (100 - g_Config.m_SvBallDecay) / 100.0;
 			m_Direction.y *= (100 - g_Config.m_SvBallDecay) / 100.0;
 			m_StartTick = Server()->Tick();
+			m_LastOwnerInterTick = Server()->Tick()-2;
 		}
 	}
 }
