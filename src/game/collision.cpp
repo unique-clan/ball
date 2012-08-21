@@ -76,6 +76,9 @@ void CCollision::Init(class CLayers *pLayers)
 		case TILE_DEATH_BALL_SOLID:
 			m_pTiles[i].m_Index = COLFLAG_BALL_SOLID | COLFLAG_DEATH;
 			break;
+		case TILE_DEATH_NON_GOALKEEPER:
+			m_pTiles[i].m_Index = SFLAG_LIMIT_NON_GOALIES;
+			break;
 		default:
 			m_pTiles[i].m_Index = 0;
 		}

@@ -621,7 +621,8 @@ void CCharacter::Tick()
 			int coll = GameServer()->Collision()->GetCollisionAt(m_Pos.x + check_pos[i][0], m_Pos.y + check_pos[i][1]);
 			if (coll & CCollision::COLFLAG_DEATH
 					|| (CCollision::MaskSCollision(coll) == CCollision::SFLAG_LIMIT_TEAM_0 && m_pPlayer->GetTeam() == 0)
-					|| (CCollision::MaskSCollision(coll) == CCollision::SFLAG_LIMIT_TEAM_1 && m_pPlayer->GetTeam() == 1)) {
+					|| (CCollision::MaskSCollision(coll) == CCollision::SFLAG_LIMIT_TEAM_1 && m_pPlayer->GetTeam() == 1)
+					|| (CCollision::MaskSCollision(coll) == CCollision::SFLAG_LIMIT_NON_GOALIES && !m_aWeapons[WEAPON_NINJA].m_Got)) {
 				if (m_aWeapons[WEAPON_SHOTGUN].m_Ammo) {
 					coll = CCollision::MaskSCollision(coll);
 					if (coll == CCollision::SFLAG_GOAL_TEAM_0 || coll == CCollision::SFLAG_GOAL_TEAM_1) {
@@ -638,8 +639,9 @@ void CCharacter::Tick()
 				break;
 			}
 			if (m_aWeapons[WEAPON_NINJA].m_Got) {
-				if ((m_pPlayer->GetTeam() == 0 && coll & CCollision::SFLAG_GOALIE_LIMIT_0)
-					|| (m_pPlayer->GetTeam() == 1 && coll & CCollision::SFLAG_GOALIE_LIMIT_1)) {
+				coll = CCollision::MaskSCollision(coll);
+				if ((m_pPlayer->GetTeam() == 0 && coll == CCollision::SFLAG_GOALIE_LIMIT_0)
+					|| (m_pPlayer->GetTeam() == 1 && coll == CCollision::SFLAG_GOALIE_LIMIT_1)) {
 					m_Core.m_Vel = vec2(0,0);
 					m_Core.m_Pos = m_Pos = m_GoalkeeperPos;
 				}
