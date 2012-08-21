@@ -96,6 +96,7 @@ The new entities are nearly equivalent to the new ones. You just have to change 
 * Goal of blue team which kills players. This is necessary to enable slam dunks.
 * This tile is solid only for balls, so they bounce at this tile.
 * Exactly like the above tile, but additionally kills players.
+* Kills no goalkeeper but all other players
 
 At the bottom of the entities, in the pickup area:
 * Shotgun = ball.
