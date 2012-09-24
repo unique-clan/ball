@@ -56,7 +56,7 @@ MACRO_CONFIG_INT(GfxNoclip, gfx_noclip, 0, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "D
 
 // server
 MACRO_CONFIG_INT(SvWarmup, sv_warmup, 0, 0, 0, CFGFLAG_SERVER, "Number of seconds to do warmup before round starts")
-MACRO_CONFIG_STR(SvMotd, sv_motd, 900, "", CFGFLAG_SERVER, "Message of the day to display for the clients")
+MACRO_CONFIG_STR(SvMotd, sv_motd, 900, "BALL MOD\n\nThe shotgun is a ball. Take it and shoot it into the goal. The shotgun ammo shows the number of seconds you can keep the ball before being forced to shoot. You can extend this time by picking up armor. You can get the ball from someone else with the hammer. You are getting the goalkeeper after picking up the ninja. All other weapons will do damage to other tees and finally freeze them.\n\nHave fun!\n\nContact:\nhttps://github.com/scosu", CFGFLAG_SERVER, "Message of the day to display for the clients")
 MACRO_CONFIG_INT(SvTeamdamage, sv_teamdamage, 0, 0, 1, CFGFLAG_SERVER, "Team damage")
 MACRO_CONFIG_STR(SvMaprotation, sv_maprotation, 768, "", CFGFLAG_SERVER, "Maps to rotate between")
 MACRO_CONFIG_INT(SvRoundsPerMap, sv_rounds_per_map, 1, 1, 100, CFGFLAG_SERVER, "Number of rounds on each map before rotating")
