@@ -91,7 +91,7 @@ MACRO_CONFIG_INT(SvHealthStunnedTicks, sv_health_stunned, 200, 0, 10000, CFGFLAG
 MACRO_CONFIG_INT(SvBaseKeep, sv_ball_base_keep, 150, 0, 1000000, CFGFLAG_SERVER, "# Ticks you are guaranteed to keep the ball")
 MACRO_CONFIG_INT(SvArmorKeep, sv_ball_armor_keep, 25, 0, 1000000, CFGFLAG_SERVER, "# Ticks per armor you can keep the ball additional to the base time")
 MACRO_CONFIG_INT(SvBallLifetime, sv_ball_lifetime, 90, 0, 1000000, CFGFLAG_SERVER, "Ball lifetime in seconds")
-MACRO_CONFIG_INT(SvPhysicalStartVel, sv_physical_start_vel, 100, 0, 100, CFGFLAG_SERVER, "How much influence does the tee velocity have to the projectile velocity. 100 = physically correct. 0 = no influence, default of vanilla teeworlds.")
+MACRO_CONFIG_INT(SvPhysicalStartVel, sv_physical_start_vel, 0, 0, 100, CFGFLAG_SERVER, "How much influence does the tee velocity have to the projectile velocity. 100 = physically correct. 0 = no influence, default of vanilla teeworlds.")
 
 // debug
 #ifdef CONF_DEBUG // this one can crash the server if not used correctly
